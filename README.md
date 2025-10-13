@@ -1,4 +1,130 @@
-# ArduPilot Project
+# ESP32 Drone Project - ArduPilot Implementation
+
+## Project Overview
+This project demonstrates a successful implementation of ArduPilot firmware on an ESP32-S3 WROOM-1 N16R8 development board. The board has been successfully flashed with ArduCopter firmware and can communicate via both WiFi and USB serial connections with ground control stations like MAVProxy and Mission Planner.
+
+## Hardware
+- **Board**: ESP32-S3 WROOM-1 N16R8 (Custom Board)
+- **Status**: Firmware flashed and fully operational
+- **Features**: WiFi telemetry, UART GPS support, RC outputs configured
+
+## Build Results
+✅ **Successful Build**: ArduCopter firmware compiled and flashed without errors  
+✅ **WiFi Connectivity**: Creates "ardupilot-esp32" access point  
+✅ **Telemetry**: 885 parameters loaded successfully  
+✅ **Ground Control**: Compatible with MAVProxy and Mission Planner  
+
+![Successful MAVProxy Connection](docs/images/Screenshot%20from%202025-10-13%2018-01-19.png)
+
+## Building and Flashing
+
+### Prerequisites
+
+1. **Install Build Dependencies** (Ubuntu/Pop!_OS):
+   ```bash
+   Tools/environment_install/install-prereqs-ubuntu.sh -y
+   # Re-open shell to pick up environment changes
+   ```
+
+2. **Install ESP32 Tools**:
+   ```bash
+   pip3 install esptool
+   ```
+
+### Build Process
+
+1. **Configure for ESP32-S3**:
+   ```bash
+   ./waf configure --board esp32s3
+   ```
+
+2. **Build ArduCopter**:
+   ```bash
+   ./waf copter
+   ```
+
+3. **Flash to ESP32** (put board in bootloader mode):
+   ```bash
+   esptool.py --chip esp32s3 --port /dev/ttyACM0 --baud 460800 --before default_reset --after hard_reset write_flash -z --flash_mode dio --flash_freq 80m --flash_size 16MB 0x0 build/esp32s3/bin/arducopter.bin
+   ```
+
+### Build Output Location
+- **Firmware**: `build/esp32s3/bin/arducopter.bin`
+- **Size**: ~2.7MB binary
+- **Flash Memory**: Uses 16MB ESP32-S3 flash
+
+## Ground Control Station Connection
+
+### Method 1: WiFi Connection (Recommended)
+
+1. **Connect to ESP32 WiFi Network**:
+   ```bash
+   nmcli dev wifi connect "ardupilot-esp32" password "ardupilot-esp32"
+   ```
+
+2. **Launch MAVProxy**:
+   ```bash
+   mavproxy.py --master=tcp:192.168.4.1:5760 --console --map
+   ```
+
+3. **Verify Connection**:
+   - Look for "Detected vehicle" message
+   - Confirm parameter loading (885 parameters)
+   - Map view should display telemetry data
+
+### Method 2: USB Serial Connection
+
+1. **Check Serial Port**:
+   ```bash
+   ls /dev/ttyACM*
+   ```
+
+2. **Connect via MAVProxy**:
+   ```bash
+   mavproxy.py --master=/dev/ttyACM0 --baudrate 115200 --console --map
+   ```
+
+3. **Alternative Serial Monitoring**:
+   ```bash
+   timeout 10 python3 -m serial.tools.miniterm /dev/ttyACM0 115200
+   ```
+
+### Method 3: Mission Planner (Windows/Wine)
+
+1. **Launch Mission Planner**:
+   ```bash
+   mono MissionPlanner.exe
+   ```
+
+2. **Connection Options**:
+   - **WiFi**: Use TCP connection to `192.168.4.1:5760`
+   - **USB**: Select COM port and 115200 baud rate
+
+### Troubleshooting
+
+**WiFi Connection Issues**:
+- Scan for available ports: `nmap -Pn -p 5760,14550 192.168.4.1`
+- Check if connected to ESP32 network: `ifconfig wlo1`
+
+**USB Serial Issues**:
+- Check device permissions: `sudo chmod 666 /dev/ttyACM0`
+- Verify ESP32 output: `timeout 5 cat /dev/ttyACM0`
+- Check kernel messages: `dmesg | grep -i "esp32\|ttyACM"`
+
+**MAVProxy Not Starting**:
+- Install dependencies: `pip3 install MAVProxy pymavlink`
+- Check Python path issues with matplotlib warnings (non-critical)
+
+### Expected Results
+- **Flight Mode**: STABILIZE (default)
+- **Parameters**: 885 parameters loaded
+- **Telemetry**: Loop rate ~192Hz (expected 400Hz)
+- **Map**: Live GPS coordinate display
+- **Status**: Vehicle detected as system ID 1
+
+---
+
+# Original ArduPilot Project
 
 <a href="https://ardupilot.org/discord"><img src="https://img.shields.io/discord/674039678562861068.svg" alt="Discord">
 
