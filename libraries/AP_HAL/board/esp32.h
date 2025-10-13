@@ -2,10 +2,20 @@
 
 #include <hwdef.h>
 
+
+
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_ESP32_DIY
 // no include required; it is all in hwdef.dat
 #elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_ESP32_BUZZ
 #include "esp32buzz.h" //Buzz
+// ...existing cases...
+
+#elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_ESP32_S3_WROOM1_N16R8
+#include <AP_HAL_ESP32/boards/esp32s3_wroom1_n16r8.h>
+
+
+// ...fallback else -> #error remains at the end...
+
 #elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_ESP32_ICARUS
 #include "esp32icarus.h" //Alex
 #elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_ESP32_EMPTY
